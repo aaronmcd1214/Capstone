@@ -25,6 +25,7 @@ def combine_stints(df):
     Returns:
         pandas DataFrame object that has combined players' stats across 'stints'
     """
+    print('Combining multiple stints into single years...')
     df = df.groupby(['playerID', 'yearID']).sum()
     return df.reset_index(level=['playerID', 'yearID'])
 
@@ -39,6 +40,7 @@ def map_position(batting_df, fielding_df):
     Returns:
         nothing, batting_df is acted on inplace
     """
+    print('Mapping positions to batting stats...')
     for player in fielding_df['playerID'].unique():
         idxmax = fielding_df[fielding_df['playerID'] == player]['POS'].value_counts().idxmax()
         batting_df.loc[batting_df['playerID'] == player, 'pos'] = idxmax
@@ -57,6 +59,7 @@ def create_averages(df):
     Returns:
         New DataFrame object
     """
+    print('Creating DataFrame of averages...')
     avg_df = df.drop('yearID', axis=1)
     avg_df = avg_df.groupby('playerID').mean()
     avg_df['total_seasons'] = [len(df[df['playerID'] == player]) for player in df['playerID'].unique()]

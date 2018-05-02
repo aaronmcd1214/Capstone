@@ -31,15 +31,16 @@ class PlayerPrediction(object):
             self.player_name = first + ' ' + last
         #initial feature drop
         dc.initial_drop(batting_df)
+
         #combine stints to single years
-        print('Combining multiple stints into single years...')
         batting_df_stints_combined = dc.combine_stints(batting_df)
+
         #create avg_df, contains players' averages over career
-        print('Creating DataFrame of {}\'s averages...'.format(self.player_name))
         self.avg_df = dc.create_averages(batting_df_stints_combined)
+
         #map most-played position to the batting_df and drop pitchers and those without a position
-        print('Mapping positions to batting stats...')
         batting_pos_df = dc.map_position(batting_df_stints_combined, fielding_df)
+
         #pull out players of same position and at least as many years as self.playerID
         self.players_to_compare = self._get_comparison(batting_pos_df)
 
