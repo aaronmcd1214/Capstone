@@ -65,7 +65,7 @@ class PlayerPrediction(object):
         years_served = len(df[player_mask])
 
         #get players of same position
-        same_pos = df.loc[(~player_mask) & (pos_mask)]
+        same_pos = df.loc[pos_mask]
 
         #filter players of same position and their first n years equal to self.playerID's service time
         first_n_years = same_pos.groupby('playerID', as_index=False).head(years_served)
@@ -85,7 +85,7 @@ class PlayerPrediction(object):
         """
         value_counts = df.playerID.value_counts()
         players_to_compare = value_counts.loc[value_counts.values == 7].index
-        return df[df['playerID'].isin(players_to_compare)]
+        return df[df['playerID'].isin(players_to_compare)].reset_index()
 
 
     def build_models(self, playerID):
