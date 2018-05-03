@@ -2,47 +2,48 @@ from src import data_cleaning as dc
 import pandas as pd
 import sys
 
-class PlayerPrediction(object):
-    def __init__(self, player_name=None, playerID=None):
-        self.player_name = player_name
 
-        if playerID == None:
-            self.playerID = get_id(player_name)
-        else:
-            self.playerID = playerID
+class PlayerPrediction(object):
+    def __init__(self, player_id):
+        self.master_df = pd.read_csv('src/data/baseballdatabank-master/core/People.csv')
+        self.batting_df = pd.read_csv('src/data/baseballdatabank-master/core/Batting.csv')
+        self.fielding_df = pd.read_csv('src/data/baseballdatabank-master/core/Fielding.csv')
+        self.player_name = self.master_df.loc[self.master_df['playerID'] == player_id, 'nameFirst'].iloc[0] \
+            + ' ' + self.master_df[self.master_df['playerID'] == player_id, 'nameLast'].iloc[0]
+        self.player_id = player_id
         self.build_dataframes()
+        self.avg_df = None
+        self.players_to_compare = None
+        self.batting_pos_df = None
         # build_models()
         # predict()
         # display_results()
 
-    def get_id(player_name):
-        pass
+    """
+    implement this method if time allows, otherwise just use player's id
+    
+    def get_id(self, player_name):
+        self.master_df['nameFull'] = self.master_df['nameFirst'] + ' ' + self.master_df['nameLast']
+    """
 
     def build_dataframes(self):
-        #initial DataFrames created
+        # initial DataFrames created
         print('Building DataFrames and engineering features/cleaning...')
-        master_df = pd.read_csv('src/data/baseballdatabank-master/core/People.csv')
-        batting_df = pd.read_csv('src/data/baseballdatabank-master/core/Batting.csv')
-        fielding_df = pd.read_csv('src/data/baseballdatabank-master/core/Fielding.csv')
 
-        if self.player_name == None:
-            first = master_df.loc[master_df['playerID'] == self.playerID, 'nameFirst'].iloc[0]
-            last = master_df.loc[master_df['playerID'] == self.playerID, 'nameLast'].iloc[0]
-            self.player_name = first + ' ' + last
-        #initial feature drop
-        dc.initial_drop(batting_df)
+        # initial feature drop
+        dc.initial_drop(self.batting_df)
 
-        #combine stints to single years
-        batting_df_stints_combined = dc.combine_stints(batting_df)
+        # combine stints to single years
+        batting_df_stints_combined = dc.combine_stints(self.batting_df)
 
-        #create avg_df, contains players' averages over career
+        # create avg_df, contains players' averages over career
         self.avg_df = dc.create_averages(batting_df_stints_combined)
 
-        #map most-played position to the batting_df and drop pitchers and those without a position
-        batting_pos_df = dc.map_position(batting_df_stints_combined, fielding_df)
+        # map most-played position to the batting_df and drop pitchers and those without a position
+        self.batting_pos_df = dc.map_position(batting_df_stints_combined, self.fielding_df)
 
-        #pull out players of same position and at least as many years as self.playerID
-        self.players_to_compare = self._get_comparison(batting_pos_df)
+        # pull out players of same position and at least as many years as self.playerID
+        self.players_to_compare = self._get_comparison(self.batting_pos_df)
 
     def _get_comparison(self, df):
         """
@@ -54,23 +55,23 @@ class PlayerPrediction(object):
         Returns:
             filtered DataFrame
         """
-        #get player's position
-        player_pos = df.loc[df['playerID'] == self.playerID, 'pos'].unique()[0]
+        # get player's position
+        player_pos = df.loc[df['playerID'] == self.player_id, 'pos'].unique()[0]
 
-        #set masks
-        player_mask = df['playerID'] == self.playerID
+        # set masks
+        player_mask = df['playerID'] == self.player_id
         pos_mask = df['pos'] == player_pos
 
-        #get years of service
+        # get years of service
         years_served = len(df[player_mask])
 
-        #get players of same position
+        # get players of same position
         same_pos = df.loc[pos_mask]
 
-        #filter players of same position and their first n years equal to self.playerID's service time
+        # filter players of same position and their first n years equal to self.playerID's service time
         first_n_years = same_pos.groupby('playerID', as_index=False).head(years_served)
 
-        #filter out players with service time less than self.playerID
+        # filter out players with service time less than self.playerID
         return self._players_to_compare_func(first_n_years)
 
     def _players_to_compare_func(self, df):
@@ -87,8 +88,7 @@ class PlayerPrediction(object):
         players_to_compare = value_counts.loc[value_counts.values == 7].index
         return df[df['playerID'].isin(players_to_compare)].reset_index()
 
-
-    def build_models(self, playerID):
+    def build_models(self):
         pass
 
     def predict(self):
@@ -96,6 +96,7 @@ class PlayerPrediction(object):
 
     def display_results(self):
         pass
+
 
 if __name__ == '__main__':
     """
