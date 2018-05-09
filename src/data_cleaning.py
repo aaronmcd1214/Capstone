@@ -88,6 +88,19 @@ def condense_df(df0):
     new_df_w_dummies = pd.get_dummies(new_df_na_dropped, columns=['pos'])
     return new_df_w_dummies
 
+def trim_batters(df):
+    # remove those seasons where batter had less than 100 ABs
+    df = df[df['AB'] > 100]
+
+    # remove batters with less than 7 years experience
+    s = df['playerID'].value_counts()
+    df = df[df['playerID'].isin(s[s > 6].index)]
+
+    # select first 7 seasons
+    df = df.groupby('playerID').head(7)
+
+    return df
+
 # probably not needed
 # def create_averages(df):
 #     """
