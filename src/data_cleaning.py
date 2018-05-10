@@ -99,7 +99,7 @@ def trim_batters(df):
     # select first 7 seasons
     df = df.groupby('playerID').head(7)
 
-    return df
+    return df.drop(['H', 'AB'], axis=1)
 
 # probably not needed
 # def create_averages(df):
