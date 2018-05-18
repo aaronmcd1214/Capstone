@@ -84,9 +84,9 @@ def condense_df(df0):
     new_df_w_dummies = pd.get_dummies(new_df_na_dropped, columns=['pos'])
     return new_df_w_dummies
 
-def trim_batters(df):
+def trim_batters(df, ab=100):
     # remove those seasons where batter had less than 100 ABs
-    df = df[df['AB'] > 100]
+    df = df[df['AB'] > ab]
 
     # remove batters with less than 7 years experience
     s = df['playerID'].value_counts()
